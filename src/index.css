@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+Arabic:wght@300;400;500&family=JetBrains+Mono:wght@355;450&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Base Dark Blue Metallic Shine Water Gel styling override */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: radial-gradient(ellipse at 50% 0%, #0d1e3d 0%, #030815 100%) fixed;
+  color: #cbd5e1;
+}
+
+/* Enforce normal and medium weights globally - avoid bold fonts per instructions */
+.font-bold, b, strong, h1, h2, h3, h4, h5, h6 {
+  font-weight: 500 !important;
+}
+
+/* Overwrite background text sizing to prevent large aggressive headings */
+h1 {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+h2 {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+h3 {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+/* Convert all white panels into fluid glossy metallic water-gel blocks */
+.bg-white {
+  background: linear-gradient(135deg, rgba(12, 30, 64, 0.75) 0%, rgba(5, 14, 32, 0.9) 100%) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 210, 255, 0.25) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 4px rgba(0, 0, 0, 0.5),
+    0 8px 32px rgba(1, 6, 20, 0.7),
+    0 1px 15px rgba(0, 196, 255, 0.05) !important;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gel shine upper-surface light glaze overlay */
+.bg-white::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 80%, rgba(255, 255, 255, 0) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+/* Soft highlight on hover for water-gel blocks */
+.bg-white:hover {
+  border-color: rgba(0, 210, 255, 0.5) !important;
+  box-shadow: 
+    inset 0 1px 3px rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(0, 212, 255, 0.15) !important;
+  transform: translateY(-1px);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Secondary levels (neutral-50) become rich dark gel pools */
+.bg-neutral-50, .bg-neutral-50\/20, .bg-neutral-50\/50, .bg-neutral-100 {
+  background: linear-gradient(180deg, rgba(14, 34, 71, 0.7) 0%, rgba(8, 20, 44, 0.9) 100%) !important;
+  border-color: rgba(0, 210, 255, 0.18) !important;
+  color: #94a3b8 !important;
+}
+
+/* Force dark-blue visual layout workspace bg */
+.min-h-screen {
+  background: radial-gradient(ellipse at 50% 0%, #0d1e3d 0%, #030815 100%) !important;
+}
+
+/* Header and navigation bar properties */
+header, .border-b {
+  background: linear-gradient(90deg, #061129 0%, #020712 100%) !important;
+  border-color: rgba(0, 210, 255, 0.22) !important;
+}
+
+/* Sidebar structure details */
+aside, .bg-neutral-900 {
+  background: linear-gradient(180deg, #040d1f 0%, #01040a 100%) !important;
+  border-color: rgba(0, 210, 255, 0.15) !important;
+}
+
+/* Form interactive controls with deep glossy gel Wells style */
+input, select, textarea {
+  background: rgba(3, 10, 26, 0.85) !important;
+  border: 1px solid rgba(0, 210, 255, 0.25) !important;
+  color: #f1f5f9 !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(4px);
+  font-weight: 400 !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: #00d2ff !important;
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.45), inset 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+  outline: none;
+}
+
+/* Set general neutral text to higher contrast blue-grey */
+.text-neutral-950, .text-neutral-900, .text-neutral-800 {
+  color: #f1f5f9 !important;
+}
+.text-neutral-700, .text-neutral-600 {
+  color: #cbd5e1 !important;
+}
+.text-neutral-500, .text-neutral-400 {
+  color: #8fa1b8 !important;
+}
+
+/* Glowing text modifications for statuses */
+.text-[9px].text-emerald-600, .text-emerald-600 {
+  color: #4ade80 !important;
+}
+.text-[9px].text-rose-600, .text-rose-600 {
+  color: #f87171 !important;
+}
+.text-[9px].text-amber-600, .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+/* Beautiful custom subtle watery sapphire scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020612;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  border-radius: 3px;
+  border: 1px solid #0d1e3d;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00d2ff 0%, #0284c7 100%);
+}
+
+/* Ensure completely safe transitions with high-quality cubic-bezier curves */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}

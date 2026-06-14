@@ -1,0 +1,6 @@
+{
+  "name": "Agentic Voice GRC",
+  "description": "Bilingual enterprise GRC system featuring voice threat assessors, local AI models, and immutable blockchain ledgers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

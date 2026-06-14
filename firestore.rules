@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // (Pillar 1) Default-Deny Catch-All Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- PRIMITIVE GLOBAL HELPERS (Section Primitive Definition) ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Fetch user role dynamically inside multi-tenant scope
+    function getUserRole(companyId, userId) {
+      return get(/databases/$(database)/documents/companies/$(companyId)/users/$(userId)).data.role;
+    }
+
+    function isCompanyAdmin(companyId) {
+      return isSignedIn() && getUserRole(companyId, request.auth.uid) == 'system_admin';
+    }
+
+    function isComplianceManager(companyId) {
+      return isSignedIn() && getUserRole(companyId, request.auth.uid) == 'compliance_mgr';
+    }
+
+    function isRiskAnalyst(companyId) {
+      return isSignedIn() && getUserRole(companyId, request.auth.uid) == 'risk_analyst';
+    }
+
+    // --- COMPONENT SPECIFIC STANDALONE VALIDATION BLUEPRINTS (Pillar 2) ---
+
+    // 1. User Document Structure Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'username', 'email', 'role', 'companyId', 'isActive'])
+          && data.keys().size() == 12 // Exact field matching to prevent shadow/ghost fields
+          && data.uid is string && data.uid.size() == 28
+          && data.username is string && data.username.size() >= 3 && data.username.size() <= 50
+          && data.email is string && data.email.size() <= 100
+          && data.role in ['system_admin', 'compliance_mgr', 'risk_analyst', 'auditor', 'executive', 'employee']
+          && data.companyId is string && data.companyId.size() <= 100
+          && data.isActive is bool;
+    }
+
+    // 2. Risk Document Structure & Boundaries Validation
+    function isValidRisk(data) {
+      return data.keys().hasAll(['id', 'companyId', 'title', 'likelihood', 'impact', 'inherentRiskScore', 'treatmentStrategy', 'reviewStatus'])
+          && data.id is string && data.id.size() <= 128
+          && data.companyId is string && data.companyId.size() <= 128
+          && data.title is string && data.title.size() <= 200
+          && data.likelihood is int && data.likelihood >= 1 && data.likelihood <= 5
+          && data.impact is int && data.impact >= 1 && data.impact <= 5
+          && data.inherentRiskScore == data.likelihood * data.impact
+          && data.treatmentStrategy in ['avoid', 'mitigate', 'transfer', 'accept']
+          && data.reviewStatus in ['draft', 'pending', 'reviewed', 'approved'];
+    }
+
+    // --- COHESIVE SECURED MATCH BLOCKS (Pillar 8 & 10) ---
+
+    // Match Multi-Tenant Company Documents
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isEmailVerified() && isCompanyAdmin(companyId);
+      allow delete: if false; // System configs are structurally immortal
+
+      // Employee Users Subcollection
+      match /users/{userId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isCompanyAdmin(companyId));
+        allow create: if isSignedIn() && isEmailVerified() && isValidUser(incoming()) && (request.auth.uid == userId || isCompanyAdmin(companyId));
+        allow update: if isSignedIn() && isEmailVerified() && isValidUser(incoming()) && (
+          // System Admin can edit roles
+          isCompanyAdmin(companyId) ||
+          // Users can update their signatures or status, preventing self-assigned role changes
+          (request.auth.uid == userId && incoming().role == existing().role)
+        );
+        allow delete: if isSignedIn() && isCompanyAdmin(companyId);
+      }
+
+      // 12-Step Risk Assessment Subcollection
+      match /risks/{riskId} {
+        allow get: if isSignedIn();
+        allow list: if isSignedIn() && resource.data.companyId == companyId; // Pillar 8 Enforcer (Zero client query scraping trust)
+        allow create: if isSignedIn() && isEmailVerified() && isValidId(riskId) && isValidRisk(incoming()) 
+                      && (isRiskAnalyst(companyId) || isCompanyAdmin(companyId));
+        
+        allow update: if isSignedIn() && isEmailVerified() && isValidRisk(incoming()) && (
+          isCompanyAdmin(companyId) ||
+          isRiskAnalyst(companyId) ||
+          // Pillar 4 & 5 Integration: Executives can only status approve, preserving key fields immutability
+          (getUserRole(companyId, request.auth.uid) == 'executive' 
+            && incoming().diff(existing()).affectedKeys().hasOnly(['reviewStatus', 'comments']))
+        );
+        allow delete: if isSignedIn() && isCompanyAdmin(companyId);
+      }
+
+      // Compliance Controls subcollection - regulatory references
+      match /controls/{controlId} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn() && (isComplianceManager(companyId) || isCompanyAdmin(companyId));
+      }
+
+      // CEO Digital Signature approval registries
+      match /approvals/{approvalId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && (isComplianceManager(companyId) || isCompanyAdmin(companyId));
+        allow update: if isSignedIn() && (
+          // Only executive CEO can sign updates (Tier 1 execution)
+          getUserRole(companyId, request.auth.uid) == 'executive' 
+          && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'digitalSignature', 'barcodeCredential', 'approvedAt'])
+        );
+      }
+
+      // Cryptographic Ledger Blockchain Entries (Pillar 7 Atomicity)
+      match /ledger/{recordId} {
+        allow read: if isSignedIn();
+        // Records are strictly append-only, absolutely immutable, no updates or deletes permitted
+        allow create: if isSignedIn() && isEmailVerified() && isValidId(recordId);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

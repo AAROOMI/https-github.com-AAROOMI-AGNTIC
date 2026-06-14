@@ -1,0 +1,159 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Enterprise GRC user profile with role-based access status and signatures.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth unique identifier" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["system_admin", "compliance_mgr", "risk_analyst", "auditor", "executive", "employee"] },
+        "companyId": { "type": "string" },
+        "designation": { "type": "string" },
+        "authorityLevel": { "type": "string" },
+        "digitalSignature": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username", "email", "role", "companyId", "isActive"]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "Multi-tenant GRC organization metadata.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "industry": { "type": "string" },
+        "licenseKey": { "type": "string" },
+        "licenseExpiryAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "suspended", "expired"] }
+      },
+      "required": ["id", "name", "licenseKey", "status"]
+    },
+    "Risk": {
+      "title": "Risk",
+      "description": "Detailed GRC 12-step risk assessment conforming to ISO 31000/27005 and NIST.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "likelihood": { "type": "integer", "enum": [1, 2, 3, 4, 5] },
+        "impact": { "type": "integer", "enum": [1, 2, 3, 4, 5] },
+        "inherentRiskScore": { "type": "integer" },
+        "controlEffectiveness": { "type": "string", "enum": ["excellent", "satisfactory", "partial", "weak", "none"] },
+        "residualRiskScore": { "type": "integer" },
+        "treatmentStrategy": { "type": "string", "enum": ["avoid", "mitigate", "transfer", "accept"] },
+        "ownerId": { "type": "string" },
+        "framework": { "type": "string" },
+        "reviewStatus": { "type": "string", "enum": ["draft", "pending", "reviewed", "approved"] },
+        "comments": { "type": "string" },
+        "evidenceUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "title", "likelihood", "impact", "inherentRiskScore", "treatmentStrategy", "reviewStatus"]
+    },
+    "ComplianceControl": {
+      "title": "ComplianceControl",
+      "description": "NCA ECC 2018/2024, ISO 27001, GDPR, and SOC 2 control items.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "framework": { "type": "string" },
+        "controlCode": { "type": "string" },
+        "title": { "type": "string" },
+        "domain": { "type": "string" },
+        "implementationStatus": { "type": "string", "enum": ["implemented", "in_progress", "not_applicable", "not_implemented"] },
+        "score": { "type": "integer" },
+        "documented": { "type": "boolean" },
+        "remediationPath": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "framework", "controlCode", "title", "implementationStatus"]
+    },
+    "AuditFinding": {
+      "title": "AuditFinding",
+      "description": "Security and compliance audit findings with lifecycles.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "controlId": { "type": "string" },
+        "title": { "type": "string" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "status": { "type": "string", "enum": ["open", "in_progress", "resolved"] },
+        "auditorId": { "type": "string" },
+        "description": { "type": "string" },
+        "remediationNotes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "severity", "status", "auditorId"]
+    },
+    "CEOApproval": {
+      "title": "CEOApproval",
+      "description": "Executive sign-offs on documents with biometric, barcode, and digital signatures.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "documentId": { "type": "string" },
+        "documentType": { "type": "string" },
+        "ceoUserId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "digitalSignature": { "type": "string" },
+        "barcodeCredential": { "type": "string" },
+        "approvedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "documentId", "ceoUserId", "status"]
+    },
+    "BlockchainRecord": {
+      "title": "BlockchainRecord",
+      "description": "Ledger hashes verifying the immutability of the GRC records.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "previousHash": { "type": "string" },
+        "dataHash": { "type": "string" },
+        "blockHash": { "type": "string" },
+        "transactionType": { "type": "string" },
+        "payload": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "previousHash", "dataHash", "blockHash", "transactionType", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Multi-tenant company configurations."
+    },
+    "/companies/{companyId}/users/{userId}": {
+      "schema": "User",
+      "description": "Organisational user roles inside the company scope."
+    },
+    "/companies/{companyId}/risks/{riskId}": {
+      "schema": "Risk",
+      "description": "Internal risk register and ISO 31000 assessments of the organization."
+    },
+    "/companies/{companyId}/controls/{controlId}": {
+      "schema": "ComplianceControl",
+      "description": "Regulatory control statuses for audits."
+    },
+    "/companies/{companyId}/findings/{findingId}": {
+      "schema": "AuditFinding",
+      "description": "Historical audit findings tracked for security."
+    },
+    "/companies/{companyId}/approvals/{approvalId}": {
+      "schema": "CEOApproval",
+      "description": "High-security approvals requiring digital signatures and credentials."
+    },
+    "/companies/{companyId}/ledger/{recordId}": {
+      "schema": "BlockchainRecord",
+      "description": "SHA-256 cryptographically chained historical audit log."
+    }
+  }
+}
